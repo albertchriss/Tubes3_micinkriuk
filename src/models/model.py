@@ -11,7 +11,7 @@ class ApplicantProfile(Base):
     last_name = Column(String(50), default=None, nullable=True)
     date_of_birth = Column(Date, default=None, nullable=True)
     address = Column(String(255), default=None, nullable=True)
-    phone_number = Column(String(20), default=None, nullable=True)
+    phone_number = Column(String(50), default=None, nullable=True)
 
     # --- Relationships ---
     applications = relationship("ApplicationDetail", back_populates="applicant")
