@@ -1,26 +1,44 @@
 import flet as ft
-
+import views.home_view as halo
 
 def main(page: ft.Page):
-    counter = ft.Text("0", size=50, data=0)
+    page.title = "CV Pattern Matching"
+    page.padding = 0
+    page.bgcolor = '#EAE6C9'
+    page.window.height = 800
+    page.window.width = 1300
 
-    def increment_click(e):
-        counter.data += 1
-        counter.value = str(counter.data)
-        counter.update()
+    page.fonts = {
+        # "PGO": "/fonts/Pathway_Gothic_One/PathwayGothicOne-Regular.ttf",
+        # "Freeman": "/fonts/Freeman/Freeman-Regular.ttf",
+    }
 
-    page.floating_action_button = ft.FloatingActionButton(
-        icon=ft.Icons.ADD, on_click=increment_click
-    )
-    page.add(
-        ft.SafeArea(
-            ft.Container(
-                counter,
-                alignment=ft.alignment.center,
-            ),
-            expand=True,
-        )
-    )
+    def route_change(route):
+        page.views.clear()
+        if page.route == "/" or page.route == "/views/home_view":
+            page.views.append(
+                ft.View(
+                    route="/",
+                    controls=[halo.home_view(page)]
+                )
+            )   
+        elif page.route == "/views/searchPage":
+            page.views.append(
+                ft.View(
+                    route="/views/searchPage",
+                    # controls=[create_search_page(page)]
+                )
+            )
+        page.update()
 
+    def view_pop(view):
+        page.views.pop()
+        top_view = page.views[-1]
+        page.go(top_view.route)
 
-ft.app(main)
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+    page.go("/")
+
+if __name__ == "__main__":
+    ft.app(target=main)
