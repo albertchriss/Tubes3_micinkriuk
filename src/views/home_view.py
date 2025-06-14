@@ -3,8 +3,15 @@ from components.search_configuration import SearchConfiguration
 from components.results import Results
 def home_view(page: ft.Page):
 
-    results = Results()
-    
+    def on_summary_click(cv_data):
+        """Handle summary button click - navigate to CV summary view"""
+        print(f"Summary clicked for: {cv_data.get('name', 'Unknown')}")
+        # Store CV data in page data for access in routing
+        page.client_storage.set("current_cv_data", cv_data)
+        page.go("/summary")
+
+    results = Results(on_summary_click=on_summary_click)
+
     def on_search_callback(search_data):
         """Handle search button click"""
         print(f"Search data: {search_data}")

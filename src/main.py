@@ -1,13 +1,12 @@
 import flet as ft
-import views.home_view as halo
+from views.home_view import home_view
+from views.cv_summary_view import cv_summary_view
 
 def main(page: ft.Page):
     page.title = "CV Pattern Matching"
     page.padding = 0
     page.bgcolor = '#EAE6C9'
-    page.window.height = 800
-    page.window.width = 1300
-
+    page.window.full_screen = True
     page.fonts = {
         # "PGO": "/fonts/Pathway_Gothic_One/PathwayGothicOne-Regular.ttf",
         # "Freeman": "/fonts/Freeman/Freeman-Regular.ttf",
@@ -19,14 +18,16 @@ def main(page: ft.Page):
             page.views.append(
                 ft.View(
                     route="/",
-                    controls=[halo.home_view(page)]
+                    controls=[home_view(page)]
                 )
             )   
-        elif page.route == "/views/searchPage":
+        elif page.route.startswith("/summary"):
+            # You'll need to pass CV data here
+            cv_data = {}  # Get this from your state management
             page.views.append(
                 ft.View(
-                    route="/views/searchPage",
-                    # controls=[create_search_page(page)]
+                    route="/summary",
+                    controls=[cv_summary_view(page, cv_data)]
                 )
             )
         page.update()

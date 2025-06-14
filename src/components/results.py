@@ -2,9 +2,11 @@ import flet as ft
 from .result_card import ResultCard
 
 class Results:
-    def __init__(self):
+    def __init__(self, on_summary_click=None):
+        self.on_summary_click = on_summary_click
         self.container = self._create_results_container()
         
+        # Sample data with CV details
         self.sample_data = [
             {
                 "name": "Farhan",
@@ -15,27 +17,39 @@ class Results:
                     {"keyword": "HTML", "occurrences": 3},
                     {"keyword": "CSS", "occurrences": 1}
                 ],
-                "bgcolor": "#E3F2FD"
+                "bgcolor": "#E3F2FD",
+                "cv_data": {
+                    "name": "Farhan",
+                    "birthdate": "15-03-1995",
+                    "address": "Jalan Sariasih Sarijadi ITB",
+                    "phone": "0812-3456-7890",
+                    "skills": ["JavaScript", "React", "Node.js", "Express", "HTML", "CSS", "MongoDB"],
+                    "education": [
+                        {
+                            "degree": "Informatics Engineering",
+                            "institution": "Institut Teknologi Bandung",
+                            "year": "2022-2026"
+                        }
+                    ],
+                    "job_history": [
+                        {
+                            "position": "CTO",
+                            "description": "Leading the organization's technology strategies",
+                            "year": "2000-2004"
+                        },
+                        {
+                            "position": "Senior Developer",
+                            "description": "Developing and maintaining web applications",
+                            "year": "1998-2000"
+                        }
+                    ]
+                }
             },
-            {
-                "name": "Alana", 
-                "matched_keywords": 1,
-                "keywords_data": [
-                    {"keyword": "React", "occurrences": 3}
-                ],
-                "bgcolor": "#F3E5F5"
-            },
-            {
-                "name": "Ariel",
-                "matched_keywords": 1, 
-                "keywords_data": [
-                    {"keyword": "HTML", "occurrences": 4}
-                ],
-                "bgcolor": "#E8F5E8"
-            }
+            # Add more sample data as needed...
         ]
-    
+
     def _create_results_container(self):
+        """Create the main results container"""
         return ft.Container(
             content=ft.Column([
                 # Results header
@@ -57,11 +71,10 @@ class Results:
                             padding=ft.padding.all(15),
                             bgcolor="#E3F2FD",
                             border_radius=8,
-                            border=ft.border.only(left=ft.BorderSide(4, "#4A90E2")),
-                            width=float('inf'),
+                            border=ft.border.only(left=ft.BorderSide(4, "#4A90E2"))
                         ),
                     ]),
-                    padding=ft.padding.only(left=20, right=20, top=10, bottom=10),
+                    padding=ft.padding.all(20),
                 ),
                 
                 # CV Cards section - this will be populated dynamically
@@ -93,12 +106,14 @@ class Results:
                 name=result["name"],
                 matched_keywords=result["matched_keywords"],
                 keywords_data=result["keywords_data"],
-                bgcolor=result["bgcolor"]
+                bgcolor=result["bgcolor"],
+                on_summary_click=self.on_summary_click,
+                cv_data=result.get("cv_data", {})
             )
             result_cards.append(card.container)
         
         # Update the CV Cards section with new cards
-        cards_row = self.container.content.controls[2].content  # Get the Row container
+        cards_row = self.container.content.controls[2].content
         cards_row.controls = result_cards
         
         # Show the results container
