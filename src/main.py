@@ -23,11 +23,12 @@ def main(page: ft.Page):
             )   
         elif page.route.startswith("/summary"):
             # You'll need to pass CV data here
-            cv_data = page.client_storage.get("current_cv_data") 
+            cv_data = page.client_storage.get("current_cv_data")
+            cv_path = page.client_storage.get("current_cv_path")
             page.views.append(
                 ft.View(
                     route="/summary",
-                    controls=[cv_summary_view(page, cv_data)]
+                    controls=[cv_summary_view(page, cv_data, cv_path)]
                 )
             )
         page.update()

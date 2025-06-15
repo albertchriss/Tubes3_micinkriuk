@@ -6,7 +6,6 @@ class Results:
         self.on_summary_click = on_summary_click
         self.container = self._create_results_container()
         
-        # Sample data - now without cv_data
         self.sample_data = {
             "exact_match_stats": {
                 "count": 15,
@@ -27,7 +26,7 @@ class Results:
                         {"keyword": "HTML", "occurrences": 3},
                         {"keyword": "CSS", "occurrences": 1}
                     ],
-                    "bgcolor": "#E3F2FD"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 },
                 {
                     "applicant_id": 2,
@@ -38,7 +37,7 @@ class Results:
                         {"keyword": "Django", "occurrences": 1},
                         {"keyword": "SQL", "occurrences": 3}
                     ],
-                    "bgcolor": "#F3E5F5"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 },
                 {
                     "applicant_id": 3,
@@ -49,7 +48,7 @@ class Results:
                         {"keyword": "Node.js", "occurrences": 2},
                         {"keyword": "MongoDB", "occurrences": 1}
                     ],
-                    "bgcolor": "#E8F5E9"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 },
                 {
                     "applicant_id": 4,
@@ -59,7 +58,7 @@ class Results:
                         {"keyword": "Java", "occurrences": 1},
                         {"keyword": "Spring", "occurrences": 2}
                     ],
-                    "bgcolor": "#FFF3E0"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 },
                 {
                     "applicant_id": 5,
@@ -70,7 +69,7 @@ class Results:
                         {"keyword": ".NET", "occurrences": 2},
                         {"keyword": "Azure", "occurrences": 1}
                     ],
-                    "bgcolor": "#E3F2FD"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 },
                 {
                     "applicant_id": 6,
@@ -81,7 +80,7 @@ class Results:
                         {"keyword": "Laravel", "occurrences": 1},
                         {"keyword": "MySQL", "occurrences": 3}
                     ],
-                    "bgcolor": "#F3E5F5"
+                    "cv_path": "data/INFORMATION-TECHNOLOGY/10089434.pdf",
                 }
             ]
         }
@@ -133,6 +132,17 @@ class Results:
             visible=False  # Initially hidden
         )
     
+    def calculate_color(self, applicant_id, index):
+        """
+        Randomize background color based on applicant_id and index.
+        blue = "#E3F2FD"
+        purple = "#F3E5F5"
+        green = "#E8F5E9"
+        yellow = "#FFF3E0"
+        """
+        colors = ["#E3F2FD", "#F3E5F5", "#E8F5E9", "#FFF3E0"]
+        return colors[(applicant_id + index) % len(colors)]
+        
     def show_results(self, results_data=None):
         """
         Show results with given data or sample data
@@ -154,7 +164,6 @@ class Results:
         if results_data is None:
             results_data = self.sample_data
         
-        # Update stats
         exact_stats = results_data.get("exact_match_stats", {})
         fuzzy_stats = results_data.get("fuzzy_match_stats", {})
         
@@ -163,15 +172,13 @@ class Results:
         
         self.update_stats(exact_text, fuzzy_text)
 
-        # Create result cards and organize them into rows (max 5 per row)
         card_rows = []
         applicants = results_data.get("applicants", [])
 
-        # If no applicants, show a message
+        # If no applicants found
         if(len(applicants) == 0):
             no_results_container = ft.Container(
                 content=ft.Column([
-                    # Empty state icon
                     ft.Container(
                         content=ft.Icon(
                             ft.Icons.SEARCH_OFF,
@@ -182,7 +189,6 @@ class Results:
                         margin=ft.margin.only(bottom=20)
                     ),
                     
-                    # Main message
                     ft.Text(
                         "No Applicants Found",
                         size=24,
@@ -191,7 +197,6 @@ class Results:
                         text_align=ft.TextAlign.CENTER
                     ),
                     
-                    # Subtitle message
                     ft.Text(
                         "We couldn't find any applicants matching your search criteria.",
                         size=16,
@@ -214,7 +219,6 @@ class Results:
                 margin=ft.margin.symmetric(horizontal=40, vertical=20)
             )
             
-            # Center the no results container
             card_rows.append(
                 ft.Row(
                     controls=[no_results_container],
@@ -222,17 +226,14 @@ class Results:
                 )
             )
             
-            # Update the CV Cards section
             cards_column = self.container.content.controls[2].content
             cards_column.controls = card_rows
             self.container.visible = True
             return
         
-        # Group applicants into chunks of 4
         for i in range(0, len(applicants), 4):
             applicant_chunk = applicants[i:i+4]
             
-            # Create cards for this chunk
             row_cards = []
             for applicant in applicant_chunk:
                 card = ResultCard(
@@ -240,25 +241,23 @@ class Results:
                     name=applicant["name"],
                     matched_keywords=applicant["matched_keywords"],
                     keywords_data=applicant["keywords_data"],
-                    bgcolor=applicant.get("bgcolor", "#E3F2FD"),
+                    bgcolor=self.calculate_color(applicant["applicant_id"], i),
+                    cv_path=applicant.get("cv_path", ""),
                     on_summary_click=self.on_summary_click
                 )
                 card.container.expand = True
                 row_cards.append(card.container)
             
-            # Create a row with up to 5 cards - align to start to prevent stretching
             card_row = ft.Row(
                 controls=row_cards,
                 spacing=15,
-                alignment=ft.MainAxisAlignment.START,  # Align cards to the left
+                alignment=ft.MainAxisAlignment.START, 
             )
             card_rows.append(card_row)
         
-        # Update the CV Cards section with multiple rows
         cards_column = self.container.content.controls[2].content
         cards_column.controls = card_rows
         
-        # Show the results container
         self.container.visible = True
     
     def hide_results(self):

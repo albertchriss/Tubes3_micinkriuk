@@ -6,7 +6,6 @@ class CVEducation:
         self.container = self._create_education_container()
     
     def _create_education_container(self):
-        # Education items
         education_items = []
         education_list = self.cv_data.get('education', [])
         if education_list:
@@ -43,7 +42,7 @@ class CVEducation:
                     content=ft.Column(education_items, spacing=10, scroll=ft.ScrollMode.AUTO),
                     padding=ft.padding.all(20),
                     bgcolor="#FFFFFF",
-                    height=150,  # Fixed height to match skills
+                    height=150,
                     alignment=ft.alignment.top_left,
                 )
             ], spacing=0),

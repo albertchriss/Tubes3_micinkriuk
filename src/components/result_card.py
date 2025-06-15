@@ -1,4 +1,6 @@
 import flet as ft
+import webbrowser
+from pathlib import Path
 
 def get_cv_data_by_applicant_id(applicant_id):
     """
@@ -169,11 +171,12 @@ def get_cv_data_by_applicant_id(applicant_id):
     })
 
 class ResultCard:
-    def __init__(self, applicant_id, name, matched_keywords, keywords_data, bgcolor="#E3F2FD", on_summary_click=None):
+    def __init__(self, applicant_id, name, matched_keywords, keywords_data, cv_path, bgcolor="#E3F2FD", on_summary_click=None):
         self.applicant_id = applicant_id
         self.name = name
         self.matched_keywords = matched_keywords
         self.keywords_data = keywords_data
+        self.cv_path = cv_path
         self.bgcolor = bgcolor
         self.on_summary_click = on_summary_click
         
@@ -189,14 +192,38 @@ class ResultCard:
         
         if cv_data and self.on_summary_click:
             print(f"CV Data fetched: {cv_data}")
-            self.on_summary_click(cv_data)
+            self.on_summary_click(cv_data, self.cv_path)
         else:
             print(f"Could not fetch CV data for applicant {self.applicant_id}")
     
+    def _on_view_cv_clicked(self, e):
+        """Handle View CV button click - open PDF in default browser"""
+        print(f"View CV clicked for applicant ID: {self.applicant_id}")
+        
+        if not self.cv_path:
+            print("No CV path provided")
+            return
+        
+        try:
+            # Convert to Path object for better handling
+            cv_path = Path(self.cv_path)
+            
+            # Check if file exists
+            if not cv_path.exists():
+                print(f"CV file not found: {cv_path}")
+                return
+            
+            # Get absolute path and open in browser
+            absolute_path = cv_path.resolve()
+            webbrowser.open(f"file:///{absolute_path}")
+            print(f"Opening PDF in browser: {absolute_path}")
+            
+        except Exception as ex:
+            print(f"Error opening CV file: {ex}")
+            
     def _create_card(self):
         """Create the CV card container"""
         
-        # Create keyword occurrence widgets in rows
         keyword_widgets = []
         for i, keyword_data in enumerate(self.keywords_data, 1):
             keyword_widgets.append(
@@ -232,7 +259,6 @@ class ResultCard:
                 keywords_section,
                 ft.Container(height=15),
                 
-                # Action buttons
                 ft.Row([
                     ft.OutlinedButton(
                         content=ft.Row([
@@ -257,7 +283,8 @@ class ResultCard:
                             shape=ft.RoundedRectangleBorder(radius=8),
                             padding=ft.padding.symmetric(horizontal=16, vertical=8)
                         ),
-                        expand=True
+                        expand=True,
+                        on_click=self._on_view_cv_clicked
                     ),
                 ], spacing=15)
             ], spacing=5),

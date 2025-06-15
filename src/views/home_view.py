@@ -4,11 +4,12 @@ from components.results import Results
 
 def home_view(page: ft.Page):
 
-    def on_summary_click(cv_data):
+    def on_summary_click(cv_data, cv_path):
         """Handle summary button click - navigate to CV summary view"""
         print(f"Summary clicked for: {cv_data.get('name', 'Unknown')}")
         # Store CV data in page data for access in routing
         page.client_storage.set("current_cv_data", cv_data)
+        page.client_storage.set("current_cv_path", cv_path)
         page.go("/summary")
 
     results = Results(on_summary_click=on_summary_click)

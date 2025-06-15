@@ -52,7 +52,8 @@ class CVJobHistory:
                     content=ft.Column(job_items, spacing=10, scroll=ft.ScrollMode.AUTO),
                     padding=ft.padding.all(20),
                     bgcolor="#FFFFFF",
-                    height=240,  # Fixed height to match skills and education
+                    height=240,
+                    alignment=ft.alignment.top_left,
                 )
             ], spacing=0),
             border_radius=10,

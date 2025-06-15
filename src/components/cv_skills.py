@@ -6,7 +6,6 @@ class CVSkills:
         self.container = self._create_skills_container()
     
     def _create_skills_container(self):
-        # Skills chips
         skills_chips = []
         skills_list = self.cv_data.get('skills', [])
         if skills_list:
@@ -41,7 +40,7 @@ class CVSkills:
                     ]),
                     padding=ft.padding.all(20),
                     bgcolor="#FFFFFF",
-                    height=150,  # Fixed height to match education
+                    height=150, 
                     alignment=ft.alignment.top_left
                 )
             ], spacing=0),

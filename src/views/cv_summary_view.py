@@ -1,18 +1,18 @@
+from pathlib import Path
+import webbrowser
 import flet as ft
 from components.cv_personal_info import CVPersonalInfo
 from components.cv_skills import CVSkills
 from components.cv_education import CVEducation
 from components.cv_job_history import CVJobHistory
 
-def cv_summary_view(page: ft.Page, cv_data):
+def cv_summary_view(page: ft.Page, cv_data, cv_path):
     """
     Create CV Summary view
     cv_data should contain: name, birthdate, address, phone, skills, education, job_history
     """
-    # Debug: Print the CV data to see what we're getting
     print(f"CV Summary - Received data: {cv_data}")
 
-    # Set default values if cv_data is None or empty
     if not cv_data:
         cv_data = {
             "name": "No Data",
@@ -25,10 +25,31 @@ def cv_summary_view(page: ft.Page, cv_data):
         }
         
     def go_back(e):
-        # Navigate back to search results
         page.go("/")
     
-    # Create component instances
+    def view_full_cv(e):
+        """Handle View CV button click - open PDF in default browser"""
+        
+        if not cv_path:
+            print("No CV path provided")
+            return
+        
+        try:
+            # Convert to Path object for better handling
+            cv_file_path = Path(cv_path)
+            
+            # Check if file exists
+            if not cv_file_path.exists():
+                print(f"CV file not found: {cv_file_path}")
+                return
+            
+            # Get absolute path and open in browser
+            absolute_path = cv_file_path.resolve()
+            webbrowser.open(f"file:///{absolute_path}")
+            print(f"Opening PDF in browser: {absolute_path}")
+            
+        except Exception as ex:
+            print(f"Error opening CV file: {ex}")
     personal_info = CVPersonalInfo(cv_data)
     skills = CVSkills(cv_data)
     education = CVEducation(cv_data)
@@ -36,7 +57,6 @@ def cv_summary_view(page: ft.Page, cv_data):
     
     return ft.Container(
         content=ft.Column([
-            # Header with back button
             ft.Container(
                 content=ft.Row([
                     ft.Row([
@@ -59,10 +79,8 @@ def cv_summary_view(page: ft.Page, cv_data):
                 ),
             ),
             
-            # Personal info component
             personal_info.container,
             
-            # Skills and Education in the same row
             ft.Container(
                 content=ft.Row([
                     skills.container,
@@ -71,14 +89,12 @@ def cv_summary_view(page: ft.Page, cv_data):
                 padding=ft.padding.symmetric(horizontal=20, vertical=10)
             ),
             
-            # Job History - full width with proper margins
             ft.Container(
                 content=job_history.container,
                 padding=ft.padding.symmetric(horizontal=20, vertical=10),
-                width=float('inf')  # Ensure full width
+                width=float('inf') 
             ),
             
-            # View Full CV button
             ft.Container(
                 content=ft.ElevatedButton(
                     content=ft.Row([
@@ -89,7 +105,8 @@ def cv_summary_view(page: ft.Page, cv_data):
                     style=ft.ButtonStyle(
                         shape=ft.RoundedRectangleBorder(radius=10),
                         padding=ft.padding.symmetric(horizontal=40, vertical=15)
-                    )
+                    ),
+                    on_click=view_full_cv
                 ),
                 alignment=ft.alignment.center,
                 padding=ft.padding.all(20)
@@ -98,5 +115,5 @@ def cv_summary_view(page: ft.Page, cv_data):
         alignment=ft.alignment.top_center,
         padding=0,
         expand=True,
-        bgcolor="#F5F5F5",  # Same background color as home page
+        bgcolor="#F5F5F5",
     )

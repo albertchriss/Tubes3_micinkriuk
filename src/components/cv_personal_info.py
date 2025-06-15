@@ -9,8 +9,8 @@ class CVPersonalInfo:
         return ft.Container(
             content=ft.Column([
                 ft.Text(self.cv_data.get('name', 'Unknown'), size=24, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                ft.Container(height=10),  # Spacing
-                # Personal info with separate background colors
+                ft.Container(height=10),  
+
                 ft.Row([
                     ft.Container(
                         content=ft.Row([
