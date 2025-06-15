@@ -8,6 +8,7 @@ import pickle
 import json
 import os
 from pathlib import Path
+from core.regex import process_cv
 
 cv_data_text = {}
 CACHE_FILE = Path("data/cache/cv_data_cache.pkl")
@@ -50,6 +51,7 @@ def extract_all_cv_data(force_refresh=False):
     for application in applications:
         if application.cv_path and application.applicant_id: # type: ignore
             cv_text = extract_text_from_pdf(application.cv_path)
+            cv_text = cv_text.lower()
             if cv_text:
                 cv_data_text[application.detail_id] = {
                     "applicant_id": application.applicant_id,
@@ -164,14 +166,16 @@ def get_cv_data_by_applicant_id(applicant_id: int):
         if not applicant:
             return None
         
+        regex_res = process_cv(cv_data_text.get(applications[0].detail_id, {}).get("cv_text", ""))
+
         cv_data = {
             "name": f"{applicant.first_name} {applicant.last_name}",
             "birthdate": applicant.date_of_birth.isoformat() if applicant.date_of_birth else None, # type: ignore
             "address": applicant.address,
             "phone_number": applicant.phone_number,
-            "skills": [],
-            "education": [],
-            "job_history": []
+            "skills": regex_res.get("skills", []),
+            "education": regex_res.get("education", []),
+            "job_history": regex_res.get("job_history", []),
         }
 
         return cv_data

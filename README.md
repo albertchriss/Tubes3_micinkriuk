@@ -68,6 +68,7 @@
     ```bash
     cp .env.example .env
     ```
+
 2. Edit `DATABASE_URL`
 
 3. Jalankan seeder
