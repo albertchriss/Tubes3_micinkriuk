@@ -190,10 +190,9 @@ class ResultCard:
         
         # Fetch CV data using applicant_id
         # TODO: Implement get_cv_data_by_applicant_id
-        cv_data = get_cv_data_by_detail_id(self.applicant_id) 
+        cv_data = get_cv_data_by_detail_id(self.detail_id) 
         
         if cv_data and self.on_summary_click:
-            print(f"CV Data fetched: {cv_data}")
             self.on_summary_click(cv_data, self.cv_path)
         else:
             print(f"Could not fetch CV data for applicant {self.applicant_id}")
