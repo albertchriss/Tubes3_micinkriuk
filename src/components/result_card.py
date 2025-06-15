@@ -1,9 +1,9 @@
 import flet as ft
 import webbrowser
 from pathlib import Path
-from core.service import get_cv_data_by_applicant_id
+from core.service import get_cv_data_by_detail_id
 
-# def get_cv_data_by_applicant_id(applicant_id):
+# def get_cv_data_by_detail_id(applicant_id):
 #     """
 #     Dummy function to simulate fetching CV data by applicant ID
 #     Returns different CV data based on applicant_id
@@ -172,7 +172,7 @@ from core.service import get_cv_data_by_applicant_id
 #     })
 
 class ResultCard:
-    def __init__(self, applicant_id, name, matched_keywords, keywords_data, cv_path, bgcolor="#E3F2FD", on_summary_click=None):
+    def __init__(self, applicant_id, detail_id, name, matched_keywords, keywords_data, cv_path, bgcolor="#E3F2FD", on_summary_click=None):
         self.applicant_id = applicant_id
         self.name = name
         self.matched_keywords = matched_keywords
@@ -180,6 +180,7 @@ class ResultCard:
         self.cv_path = cv_path
         self.bgcolor = bgcolor
         self.on_summary_click = on_summary_click
+        self.detail_id = detail_id
         
         self.container = self._create_card()
     
@@ -189,7 +190,7 @@ class ResultCard:
         
         # Fetch CV data using applicant_id
         # TODO: Implement get_cv_data_by_applicant_id
-        cv_data = get_cv_data_by_applicant_id(self.applicant_id) 
+        cv_data = get_cv_data_by_detail_id(self.applicant_id) 
         
         if cv_data and self.on_summary_click:
             print(f"CV Data fetched: {cv_data}")

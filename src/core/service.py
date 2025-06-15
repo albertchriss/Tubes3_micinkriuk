@@ -153,20 +153,22 @@ def insert_application(applicant_id: int, application_role: str, cv_path: str):
         db.close()
 
 
-def get_cv_data_by_applicant_id(applicant_id: int):
+def get_cv_data_by_detail_id(detail_id: int):
     """
     Retrieve the CV data for a specific applicant.
     """
     db = next(get_db())
     try:
-        applications = repo_get_applications_by_applicant_id(db, applicant_id)
-        if not applications:
+        application = repo_get_application_by_id(db, detail_id)
+        if not application:    
             return None
-        applicant = repo_get_applicant_by_id(db, applicant_id)
+        
+        applicant = repo_get_applicant_by_id(db, application.applicant_id) # type: ignore
+
         if not applicant:
             return None
         
-        regex_res = process_cv(cv_data_text.get(applications[0].detail_id, {}).get("cv_text", ""))
+        regex_res = process_cv(cv_data_text.get(application.detail_id, {}).get("cv_text", ""))
 
         cv_data = {
             "name": f"{applicant.first_name} {applicant.last_name}",
@@ -217,6 +219,7 @@ def search_matching_data(keywords: list[str], algo: str, top_match: int) -> dict
             applicant_match_count += 1
             applicants_results.append({
                 "applicant_id": applicant.applicant_id,
+                "detail_id": application.detail_id,
                 "name": f"{applicant.first_name} {applicant.last_name}",
                 "matched_keywords": len(results),
                 "keywords_data": results,
