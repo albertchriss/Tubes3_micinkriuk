@@ -15,21 +15,33 @@ def border_function(pattern: str) -> list:
         boders[i] = j
     return boders
 
-def knuth_morris_pratt(text: str, pattern: str) -> bool:
-    if not pattern:
-        return True
-
-    border = border_function(pattern)
-
-    j = 0
-    for i in range(len(text)):
-        while j > 0 and text[i] != pattern[j]:
-            j = border[j - 1]
-        if text[i] == pattern[j]:
-            j += 1
-        if j == len(pattern):
-            return True
-    return False
+def knuth_morris_pratt(text: str, keywords: list[str]) -> list[dict]:
+    if not keywords:
+        return []
+    results = []
+    for keyword in keywords:
+        if not keyword:
+            results.append({"keyword": keyword, "occurrences": 0})
+            continue
+            
+        border = border_function(keyword)
+        j = 0
+        count = 0
+        
+        for i in range(len(text)):
+            while j > 0 and text[i] != keyword[j]:
+                j = border[j - 1]
+            if text[i] == keyword[j]:
+                j += 1
+            if j == len(keyword):
+                count += 1
+                j = border[j - 1]
+        
+        if count == 0:
+            continue
+        results.append({"keyword": keyword, "occurrences": count})
+    
+    return results
 
 
 # --- Boyer-Moore algorithm ---
@@ -39,25 +51,42 @@ def get_last_occ(pattern: str) -> dict:
         last_occurrence[char] = i
     return last_occurrence
 
-def boyer_moore(text: str, pattern: str) -> bool:
-    last_occurence = get_last_occ(pattern)
 
-    i = 0
+def boyer_moore(text: str, keywords: list[str]) -> list[dict]:
+    if not keywords:
+        return []
     
-    while i <= len(text) - len(pattern):
-        j = len(pattern) - 1
-
-        while j >= 0 and text[i + j] == pattern[j]:
-            j -= 1
+    results = []
+    
+    for keyword in keywords:
+        if not keyword:
+            results.append({"keyword": keyword, "occurrences": 0})
+            continue
+            
+        last_occurence = get_last_occ(keyword)
+        i = 0
+        count = 0
         
-        if j < 0:
-            return True
-        
-        mismatch_char = text[i + j]
-        last = last_occurence.get(mismatch_char, -1)
-        i += max(1, j - last)
+        while i <= len(text) - len(keyword):
+            j = len(keyword) - 1
 
-    return False
+            while j >= 0 and text[i + j] == keyword[j]:
+                j -= 1
+            
+            if j < 0:
+                count += 1
+                i += 1  
+            else:
+                mismatch_char = text[i + j]
+                last = last_occurence.get(mismatch_char, -1)
+                i += max(1, j - last)
+        
+        if count == 0:
+            continue
+
+        results.append({"keyword": keyword, "occurrences": count})
+    
+    return results
 
 
 

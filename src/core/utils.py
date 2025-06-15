@@ -1,10 +1,11 @@
-import PyPDF2
+import pypdf
 
 def extract_text_from_pdf(pdf_path):
     text = ""
+    print(f"Extracting text from {pdf_path}...")
     try:
         with open(pdf_path, "rb") as file:
-            reader = PyPDF2.PdfReader(file)
+            reader = pypdf.PdfReader(file)
             for page in reader.pages:
                 extracted = page.extract_text()
                 if extracted:

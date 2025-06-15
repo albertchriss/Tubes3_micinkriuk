@@ -1,6 +1,7 @@
 import flet as ft
 from components.search_configuration import SearchConfiguration
 from components.results import Results
+from core.service import search_matching_data
 
 def home_view(page: ft.Page):
 
@@ -20,7 +21,12 @@ def home_view(page: ft.Page):
             algorithm ("Knuth-Morris-Pratt", "Boyer-Moore", or "Aho-Corasick"), 
             and top_matches (int)"""
 
-        print(f"Search data: {search_data}")
+        # print(f"Search data: {search_data}")
+        results_data = search_matching_data(
+            keywords=search_data["keywords"],
+            algo=search_data["algorithm"],
+            top_match=int(search_data["top_matches"])
+        )
         
         # TODO: Add your search logic here
         # Your search function should return data in this format:
@@ -39,8 +45,8 @@ def home_view(page: ft.Page):
         # }
         
         # Show results with sample data for now
-        results.show_results()
-        # results.show_results(results_data)  # Use this when you have real data
+        # results.show_results()
+        results.show_results(results_data)  # Use this when you have real data
         page.update()
         
     search_config = SearchConfiguration(on_search_callback=on_search_callback)

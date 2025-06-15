@@ -4,7 +4,7 @@ from core.database import Base
 
 
 class ApplicantProfile(Base):
-    __tablename__ = "applicant_profile" 
+    __tablename__ = "applicantprofile" 
 
     applicant_id = Column(Integer, primary_key=True, index=True, nullable=False)
     first_name = Column(String(50), default=None, nullable=True)
@@ -22,10 +22,10 @@ class ApplicantProfile(Base):
 
 
 class ApplicationDetail(Base):
-    __tablename__ = "application_detail"
+    __tablename__ = "applicationdetail"
 
     detail_id = Column(Integer, primary_key=True, index=True, nullable=False)
-    applicant_id = Column(Integer, ForeignKey("applicant_profile.applicant_id"), nullable=False)
+    applicant_id = Column(Integer, ForeignKey("applicantprofile.applicant_id"), nullable=False)
     application_role = Column(String(100), default=None, nullable=True) # VARCHAR(100) DEFAULT NULL
     cv_path = Column(Text, default=None, nullable=True) # TEXT DEFAULT NULL (TEXT can store long strings)
 

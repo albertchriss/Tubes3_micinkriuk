@@ -1,174 +1,175 @@
 import flet as ft
 import webbrowser
 from pathlib import Path
+from core.service import get_cv_data_by_applicant_id
 
-def get_cv_data_by_applicant_id(applicant_id):
-    """
-    Dummy function to simulate fetching CV data by applicant ID
-    Returns different CV data based on applicant_id
-    """
-    dummy_data = {
-        1: {
-            "name": "Farhan Abdullah",
-            "birthdate": "15-03-1995",
-            "address": "Jalan Sariasih Sarijadi ITB",
-            "phone": "0812-3456-7890",
-            "skills": ["JavaScript", "React", "Node.js", "Express", "HTML", "CSS", "MongoDB"],
-            "education": [
-                {
-                    "degree": "Informatics Engineering",
-                    "institution": "Institut Teknologi Bandung",
-                    "year": "2022-2026"
-                }
-            ],
-            "job_history": [
-                {
-                    "position": "CTO",
-                    "description": "Leading the organization's technology strategies",
-                    "year": "2000-2004"
-                },
-                {
-                    "position": "Senior Developer",
-                    "description": "Developing and maintaining web applications",
-                    "year": "1998-2000"
-                }
-            ]
-        },
-        2: {
-            "name": "Sarah Johnson",
-            "birthdate": "22-07-1993",
-            "address": "Jalan Dipatiukur No. 35 Bandung",
-            "phone": "0813-9876-5432",
-            "skills": ["Python", "Django", "PostgreSQL", "Docker", "AWS", "REST API"],
-            "education": [
-                {
-                    "degree": "Computer Science",
-                    "institution": "Universitas Padjadjaran",
-                    "year": "2018-2022"
-                }
-            ],
-            "job_history": [
-                {
-                    "position": "Backend Developer",
-                    "description": "Developing scalable backend systems using Python and Django",
-                    "year": "2022-2024"
-                },
-                {
-                    "position": "Junior Developer",
-                    "description": "Building web applications and APIs",
-                    "year": "2020-2022"
-                }
-            ]
-        },
-        3: {
-            "name": "Ahmad Rizky",
-            "birthdate": "10-11-1994",
-            "address": "Jalan Gegerkalong Hilir Bandung",
-            "phone": "0814-1234-5678",
-            "skills": ["Java", "Spring Boot", "MySQL", "Kubernetes", "Jenkins", "Git"],
-            "education": [
-                {
-                    "degree": "Software Engineering",
-                    "institution": "Universitas Telkom",
-                    "year": "2016-2020"
-                },
-                {
-                    "degree": "AWS Certified Developer",
-                    "institution": "Amazon Web Services",
-                    "year": "2023"
-                }
-            ],
-            "job_history": [
-                {
-                    "position": "DevOps Engineer",
-                    "description": "Managing CI/CD pipelines and cloud infrastructure",
-                    "year": "2023-2024"
-                },
-                {
-                    "position": "Full Stack Developer",
-                    "description": "Developing enterprise applications using Java Spring Boot",
-                    "year": "2020-2023"
-                }
-            ]
-        },
-        4: {
-            "name": "Lisa Chen",
-            "birthdate": "05-09-1996",
-            "address": "Jalan Dago Pojok Bandung",
-            "phone": "0815-5555-1234",
-            "skills": ["Flutter", "Dart", "Firebase", "Android", "iOS", "React Native"],
-            "education": [
-                {
-                    "degree": "Information Systems",
-                    "institution": "Universitas Kristen Maranatha",
-                    "year": "2019-2023"
-                }
-            ],
-            "job_history": [
-                {
-                    "position": "Mobile Developer",
-                    "description": "Creating cross-platform mobile applications using Flutter",
-                    "year": "2023-2024"
-                },
-                {
-                    "position": "Mobile App Intern",
-                    "description": "Learning mobile development and contributing to projects",
-                    "year": "2022-2023"
-                }
-            ]
-        },
-        5: {
-            "name": "David Wilson",
-            "birthdate": "18-12-1992",
-            "address": "Jalan Setiabudi Bandung",
-            "phone": "0816-7777-8888",
-            "skills": ["C#", ".NET", "SQL Server", "Azure", "Entity Framework", "ASP.NET"],
-            "education": [
-                {
-                    "degree": "Information Technology",
-                    "institution": "Universitas Widyatama",
-                    "year": "2014-2018"
-                },
-                {
-                    "degree": "Microsoft Certified Developer",
-                    "institution": "Microsoft",
-                    "year": "2021"
-                }
-            ],
-            "job_history": [
-                {
-                    "position": "Senior .NET Developer",
-                    "description": "Leading .NET development team and architecting solutions",
-                    "year": "2021-2024"
-                },
-                {
-                    "position": ".NET Developer",
-                    "description": "Developing enterprise applications using .NET framework",
-                    "year": "2018-2021"
-                },
-                {
-                    "position": "Senior .NET Developer",
-                    "description": "Leading .NET development team and architecting solutions",
-                    "year": "2021-2024"
-                },
-                {
-                    "position": ".NET Developer",
-                    "description": "Developing enterprise applications using .NET framework",
-                    "year": "2018-2021"
-                }
-            ]
-        }
-    }
+# def get_cv_data_by_applicant_id(applicant_id):
+#     """
+#     Dummy function to simulate fetching CV data by applicant ID
+#     Returns different CV data based on applicant_id
+#     """
+#     dummy_data = {
+#         1: {
+#             "name": "Farhan Abdullah",
+#             "birthdate": "15-03-1995",
+#             "address": "Jalan Sariasih Sarijadi ITB",
+#             "phone": "0812-3456-7890",
+#             "skills": ["JavaScript", "React", "Node.js", "Express", "HTML", "CSS", "MongoDB"],
+#             "education": [
+#                 {
+#                     "degree": "Informatics Engineering",
+#                     "institution": "Institut Teknologi Bandung",
+#                     "year": "2022-2026"
+#                 }
+#             ],
+#             "job_history": [
+#                 {
+#                     "position": "CTO",
+#                     "description": "Leading the organization's technology strategies",
+#                     "year": "2000-2004"
+#                 },
+#                 {
+#                     "position": "Senior Developer",
+#                     "description": "Developing and maintaining web applications",
+#                     "year": "1998-2000"
+#                 }
+#             ]
+#         },
+#         2: {
+#             "name": "Sarah Johnson",
+#             "birthdate": "22-07-1993",
+#             "address": "Jalan Dipatiukur No. 35 Bandung",
+#             "phone": "0813-9876-5432",
+#             "skills": ["Python", "Django", "PostgreSQL", "Docker", "AWS", "REST API"],
+#             "education": [
+#                 {
+#                     "degree": "Computer Science",
+#                     "institution": "Universitas Padjadjaran",
+#                     "year": "2018-2022"
+#                 }
+#             ],
+#             "job_history": [
+#                 {
+#                     "position": "Backend Developer",
+#                     "description": "Developing scalable backend systems using Python and Django",
+#                     "year": "2022-2024"
+#                 },
+#                 {
+#                     "position": "Junior Developer",
+#                     "description": "Building web applications and APIs",
+#                     "year": "2020-2022"
+#                 }
+#             ]
+#         },
+#         3: {
+#             "name": "Ahmad Rizky",
+#             "birthdate": "10-11-1994",
+#             "address": "Jalan Gegerkalong Hilir Bandung",
+#             "phone": "0814-1234-5678",
+#             "skills": ["Java", "Spring Boot", "MySQL", "Kubernetes", "Jenkins", "Git"],
+#             "education": [
+#                 {
+#                     "degree": "Software Engineering",
+#                     "institution": "Universitas Telkom",
+#                     "year": "2016-2020"
+#                 },
+#                 {
+#                     "degree": "AWS Certified Developer",
+#                     "institution": "Amazon Web Services",
+#                     "year": "2023"
+#                 }
+#             ],
+#             "job_history": [
+#                 {
+#                     "position": "DevOps Engineer",
+#                     "description": "Managing CI/CD pipelines and cloud infrastructure",
+#                     "year": "2023-2024"
+#                 },
+#                 {
+#                     "position": "Full Stack Developer",
+#                     "description": "Developing enterprise applications using Java Spring Boot",
+#                     "year": "2020-2023"
+#                 }
+#             ]
+#         },
+#         4: {
+#             "name": "Lisa Chen",
+#             "birthdate": "05-09-1996",
+#             "address": "Jalan Dago Pojok Bandung",
+#             "phone": "0815-5555-1234",
+#             "skills": ["Flutter", "Dart", "Firebase", "Android", "iOS", "React Native"],
+#             "education": [
+#                 {
+#                     "degree": "Information Systems",
+#                     "institution": "Universitas Kristen Maranatha",
+#                     "year": "2019-2023"
+#                 }
+#             ],
+#             "job_history": [
+#                 {
+#                     "position": "Mobile Developer",
+#                     "description": "Creating cross-platform mobile applications using Flutter",
+#                     "year": "2023-2024"
+#                 },
+#                 {
+#                     "position": "Mobile App Intern",
+#                     "description": "Learning mobile development and contributing to projects",
+#                     "year": "2022-2023"
+#                 }
+#             ]
+#         },
+#         5: {
+#             "name": "David Wilson",
+#             "birthdate": "18-12-1992",
+#             "address": "Jalan Setiabudi Bandung",
+#             "phone": "0816-7777-8888",
+#             "skills": ["C#", ".NET", "SQL Server", "Azure", "Entity Framework", "ASP.NET"],
+#             "education": [
+#                 {
+#                     "degree": "Information Technology",
+#                     "institution": "Universitas Widyatama",
+#                     "year": "2014-2018"
+#                 },
+#                 {
+#                     "degree": "Microsoft Certified Developer",
+#                     "institution": "Microsoft",
+#                     "year": "2021"
+#                 }
+#             ],
+#             "job_history": [
+#                 {
+#                     "position": "Senior .NET Developer",
+#                     "description": "Leading .NET development team and architecting solutions",
+#                     "year": "2021-2024"
+#                 },
+#                 {
+#                     "position": ".NET Developer",
+#                     "description": "Developing enterprise applications using .NET framework",
+#                     "year": "2018-2021"
+#                 },
+#                 {
+#                     "position": "Senior .NET Developer",
+#                     "description": "Leading .NET development team and architecting solutions",
+#                     "year": "2021-2024"
+#                 },
+#                 {
+#                     "position": ".NET Developer",
+#                     "description": "Developing enterprise applications using .NET framework",
+#                     "year": "2018-2021"
+#                 }
+#             ]
+#         }
+#     }
     
-    return dummy_data.get(applicant_id, {
-        "name": "Unknown Applicant",
-        "birthdate": "N/A",
-        "address": "N/A",
-        "phone": "N/A",
-        "skills": [],
-        "education": [],
-        "job_history": []
-    })
+#     return dummy_data.get(applicant_id, {
+#         "name": "Unknown Applicant",
+#         "birthdate": "N/A",
+#         "address": "N/A",
+#         "phone": "N/A",
+#         "skills": [],
+#         "education": [],
+#         "job_history": []
+#     })
 
 class ResultCard:
     def __init__(self, applicant_id, name, matched_keywords, keywords_data, cv_path, bgcolor="#E3F2FD", on_summary_click=None):
