@@ -15,7 +15,7 @@ class SearchConfiguration:
             show_selected_icon=False,
             style=ft.ButtonStyle(
                 shape=ft.RoundedRectangleBorder(radius=4),
-                padding=ft.padding.symmetric(horizontal=14, vertical=12),
+                padding=ft.padding.symmetric(horizontal=14, vertical=22),
                 bgcolor={
                     ft.ControlState.SELECTED: "#4A90E2",  
                     ft.ControlState.DEFAULT: "#FFFFFF"    
@@ -108,18 +108,24 @@ class SearchConfiguration:
     
     def _on_search_clicked(self, e):
         if self.on_search_callback:
+            if(self.keywords_field.value == "" or self.top_matches.value == ""):
+                return
+            
+            if(self.top_matches.value.isdigit() == False or int(self.top_matches.value) <= 0):
+                return
+            
             # Get values and pass to callback
             search_data = {
-                'keywords': self.keywords_field.value,
+                'keywords': list(dict.fromkeys(keyword.strip() for keyword in self.keywords_field.value.split(',') if keyword.strip())),
                 'algorithm': list(self.algorithms.selected)[0] if self.algorithms.selected else None,
                 'top_matches': self.top_matches.value
             }
             self.on_search_callback(search_data)
     
-    def get_values(self):
-        """Get current form values"""
-        return {
-            'keywords': self.keywords_field.value,
-            'algorithm': list(self.algorithms.selected)[0] if self.algorithms.selected else None,
-            'top_matches': self.top_matches.value
-        }
+    # def get_values(self):
+    #     """Get current form values"""
+    #     return {
+    #         'keywords': self.keywords_field.value,
+    #         'algorithm': list(self.algorithms.selected)[0] if self.algorithms.selected else None,
+    #         'top_matches': self.top_matches.value
+    #     }

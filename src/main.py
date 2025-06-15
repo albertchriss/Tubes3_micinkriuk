@@ -23,7 +23,7 @@ def main(page: ft.Page):
             )   
         elif page.route.startswith("/summary"):
             # You'll need to pass CV data here
-            cv_data = {}  # Get this from your state management
+            cv_data = page.client_storage.get("current_cv_data") 
             page.views.append(
                 ft.View(
                     route="/summary",

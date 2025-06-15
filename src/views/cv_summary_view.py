@@ -1,4 +1,8 @@
 import flet as ft
+from components.cv_personal_info import CVPersonalInfo
+from components.cv_skills import CVSkills
+from components.cv_education import CVEducation
+from components.cv_job_history import CVJobHistory
 
 def cv_summary_view(page: ft.Page, cv_data):
     """
@@ -24,215 +28,54 @@ def cv_summary_view(page: ft.Page, cv_data):
         # Navigate back to search results
         page.go("/")
     
-    # Personal info section
-    personal_info = ft.Row([
-        ft.Container(
-            content=ft.Row([
-                ft.Icon(ft.Icons.CALENDAR_MONTH, color="#4A90E2", size=16),
-                ft.Text(f"Birthdate: {cv_data.get('birthdate', 'DD-MM-YYYY')}", size=14)
-            ], spacing=8),
-            bgcolor="#E3F2FD",
-            padding=ft.padding.all(15),
-            border_radius=8,
-            expand=True
-        ),
-        ft.Container(
-            content=ft.Row([
-                ft.Icon(ft.Icons.LOCATION_ON, color="#9C27B0", size=16),
-                ft.Text(f"Address: {cv_data.get('address', 'N/A')}", size=14)
-            ], spacing=8),
-            bgcolor="#F3E5F5",
-            padding=ft.padding.all(15),
-            border_radius=8,
-            expand=True
-        ),
-        ft.Container(
-            content=ft.Row([
-                ft.Icon(ft.Icons.PHONE, color="#4A90E2", size=16),
-                ft.Text(f"Phone: {cv_data.get('phone', 'N/A')}", size=14)
-            ], spacing=8),
-            bgcolor="#E3F2FD",
-            padding=ft.padding.all(15),
-            border_radius=8,
-            expand=True
-        ),
-    ], spacing=15)
+    # Create component instances
+    personal_info = CVPersonalInfo(cv_data)
+    skills = CVSkills(cv_data)
+    education = CVEducation(cv_data)
+    job_history = CVJobHistory(cv_data)
     
-    # Skills section
-    skills_chips = []
-    for skill in cv_data.get('skills', []):
-        skills_chips.append(
-            ft.Container(
-                content=ft.Text(skill, size=12, color="#FFFFFF"),
-                bgcolor="#4A90E2",
-                padding=ft.padding.symmetric(horizontal=12, vertical=6),
-                border_radius=15,
-                margin=ft.margin.only(right=8, bottom=8)
-            )
-        )
-    
-    skills_section = ft.Container(
+    return ft.Container(
         content=ft.Column([
-            ft.Container(
-                content=ft.Text("Skills", size=18, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                padding=ft.padding.all(20),
-                gradient=ft.LinearGradient(
-                    begin=ft.alignment.center_left,
-                    end=ft.alignment.center_right,
-                    colors=["#9C27B0", "#4A90E2"]
-                ),
-                width=float('inf'),
-            ),
-            ft.Container(
-                content=ft.Column([
-                    ft.Row(skills_chips[:4], wrap=True) if len(skills_chips) > 4 else ft.Row(skills_chips, wrap=True),
-                    ft.Row(skills_chips[4:], wrap=True) if len(skills_chips) > 4 else ft.Container()
-                ]),
-                padding=ft.padding.all(20),
-                bgcolor="#FFFFFF"
-            )
-        ]),
-        border_radius=10,
-        expand=True
-    )
-    
-    # Education section
-    education_items = []
-    for edu in cv_data.get('education', []):
-        education_items.append(
-            ft.Container(
-                content=ft.Column([
-                    ft.Text(edu.get('degree', 'N/A'), size=16, weight=ft.FontWeight.BOLD, color="#4A90E2"),
-                    ft.Text(edu.get('institution', 'N/A'), size=14, color="#666666"),
-                    ft.Text(edu.get('year', 'N/A'), size=12, color="#999999")
-                ], spacing=2),
-                padding=ft.padding.all(15),
-                bgcolor="#F8F9FA",
-                border_radius=8,
-                border=ft.border.only(left=ft.BorderSide(4, "#4A90E2"))
-            )
-        )
-    
-    education_section = ft.Container(
-        content=ft.Column([
-            ft.Container(
-                content=ft.Text("Education", size=18, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                padding=ft.padding.all(20),
-                gradient=ft.LinearGradient(
-                    begin=ft.alignment.center_left,
-                    end=ft.alignment.center_right,
-                    colors=["#4A90E2", "#50E3C2"]
-                ),
-                width=float('inf'),
-            ),
-            ft.Container(
-                content=ft.Column(education_items, spacing=10),
-                padding=ft.padding.all(20),
-                bgcolor="#FFFFFF"
-            )
-        ]),
-        border_radius=10,
-        expand=True
-    )
-    
-    # Job History section
-    job_items = []
-    for job in cv_data.get('job_history', []):
-        job_items.append(
-            ft.Container(
-                content=ft.Column([
-                    ft.Row([
-                        ft.Column([
-                            ft.Text(job.get('position', 'N/A'), size=16, weight=ft.FontWeight.BOLD, color="#4A90E2"),
-                            ft.Text(job.get('description', 'N/A'), size=14, color="#666666")
-                        ], expand=True),
-                        ft.Container(
-                            content=ft.Text(job.get('year', 'N/A'), size=12, color="#FFFFFF"),
-                            bgcolor="#9C27B0",
-                            padding=ft.padding.symmetric(horizontal=12, vertical=6),
-                            border_radius=15
-                        )
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                ], spacing=5),
-                padding=ft.padding.all(15),
-                bgcolor="#F8F9FA",
-                border_radius=8,
-                border=ft.border.only(left=ft.BorderSide(4, "#4A90E2"))
-            )
-        )
-    
-    job_history_section = ft.Container(
-        content=ft.Column([
-            ft.Container(
-                content=ft.Text("Job History", size=18, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                padding=ft.padding.all(20),
-                gradient=ft.LinearGradient(
-                    begin=ft.alignment.center_left,
-                    end=ft.alignment.center_right,
-                    colors=["#4A90E2", "#9C27B0"]
-                ),
-                width=float('inf'),
-            ),
-            ft.Container(
-                content=ft.Column(job_items, spacing=10),
-                padding=ft.padding.all(20),
-                bgcolor="#FFFFFF"
-            )
-        ]),
-        border_radius=10,
-    )
-    
-    return ft.ListView(
-        controls=[
             # Header with back button
             ft.Container(
                 content=ft.Row([
-                    ft.IconButton(
-                        icon=ft.Icons.ARROW_BACK,
-                        on_click=go_back,
-                        icon_color="#4A90E2"
-                    ),
-                    ft.Text("Back to Search", size=14, color="#4A90E2"),
-                    ft.Container(expand=True),
+                    ft.Row([
+                        ft.IconButton(
+                            icon=ft.Icons.ARROW_BACK,
+                            on_click=go_back,
+                            icon_color="#4A90E2"
+                        ),
+                        ft.Text("Back to Search", size=14, color="#4A90E2"),
+                    ], spacing=5),
                     ft.Text("CV Summary", size=20, weight=ft.FontWeight.BOLD, color="#4A90E2")
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 padding=ft.padding.all(20),
-                bgcolor="#F5F5F5"
-            ),
-            
-            # Name header
-            ft.Container(
-                content=ft.Text(cv_data.get('name', 'Unknown'), size=24, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                padding=ft.padding.all(20),
-                gradient=ft.LinearGradient(
-                    begin=ft.alignment.center_left,
-                    end=ft.alignment.center_right,
-                    colors=["#4A90E2", "#9C27B0"]
+                bgcolor="#FFFFFF",
+                shadow=ft.BoxShadow(
+                    spread_radius=1,
+                    blur_radius=10,
+                    color="#1A000000",
+                    offset=ft.Offset(0, 2)
                 ),
-                width=float('inf'),
-                border_radius=10,
-                margin=ft.margin.symmetric(horizontal=20)
             ),
             
-            # Personal info
-            ft.Container(
-                content=personal_info,
-                padding=ft.padding.symmetric(horizontal=20, vertical=10)
-            ),
+            # Personal info component
+            personal_info.container,
             
-            # Skills and Education row
+            # Skills and Education in the same row
             ft.Container(
                 content=ft.Row([
-                    skills_section,
-                    education_section
+                    skills.container,
+                    education.container
                 ], spacing=15),
                 padding=ft.padding.symmetric(horizontal=20, vertical=10)
             ),
             
-            # Job History
+            # Job History - full width with proper margins
             ft.Container(
-                content=job_history_section,
-                padding=ft.padding.symmetric(horizontal=20, vertical=10)
+                content=job_history.container,
+                padding=ft.padding.symmetric(horizontal=20, vertical=10),
+                width=float('inf')  # Ensure full width
             ),
             
             # View Full CV button
@@ -251,8 +94,9 @@ def cv_summary_view(page: ft.Page, cv_data):
                 alignment=ft.alignment.center,
                 padding=ft.padding.all(20)
             )
-        ],
-        spacing=0,
-        padding=ft.padding.all(0),
+        ], spacing=0, scroll=ft.ScrollMode.AUTO),
+        alignment=ft.alignment.top_center,
+        padding=0,
         expand=True,
+        bgcolor="#F5F5F5",  # Same background color as home page
     )
