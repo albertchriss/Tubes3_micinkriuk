@@ -1,3 +1,4 @@
+from collections import deque, defaultdict
 # --- algorithms for searching and matching patterns in text ---
 
 # --- Knuth-Morris-Pratt (KMP) algorithm ---
@@ -89,3 +90,120 @@ def levenshtein_distance(pattern: str, text: str) -> float:
             )
 
     return (1 - dp[m][n] / max(m, n)) * 100
+
+class AhoCorasickNode:
+    def __init__(self):
+        self.children = {}
+        self.failure = None
+        self.output = []
+        self.is_end = False
+
+class AhoCorasick:
+    def __init__(self):
+        self.root = AhoCorasickNode()
+    
+    def build_trie(self, keywords):
+        """Build the trie structure from keywords"""
+        for keyword in keywords:
+            node = self.root
+            for char in keyword.lower():  # Case insensitive
+                if char not in node.children:
+                    node.children[char] = AhoCorasickNode()
+                node = node.children[char]
+            node.is_end = True
+            node.output.append(keyword)
+    
+    def build_failure_function(self):
+        """Build failure function using BFS"""
+        queue = deque()
+        
+        # Initialize failure function for depth 1 nodes
+        for child in self.root.children.values():
+            child.failure = self.root
+            queue.append(child)
+        
+        # Build failure function for deeper nodes
+        while queue:
+            current = queue.popleft()
+            
+            for char, child in current.children.items():
+                queue.append(child)
+                
+                # Find failure node
+                failure_node = current.failure
+                while failure_node is not None and char not in failure_node.children:
+                    failure_node = failure_node.failure
+                
+                if failure_node is not None:
+                    child.failure = failure_node.children[char]
+                else:
+                    child.failure = self.root
+                
+                # Add output from failure node
+                child.output.extend(child.failure.output)
+    
+    def search(self, text):
+        """Search for all occurrences of keywords in text"""
+        matches = defaultdict(int)
+        node = self.root
+        
+        for i, char in enumerate(text.lower()):  # Case insensitive
+            # Follow failure links until we find a match or reach root
+            while node is not None and char not in node.children:
+                node = node.failure
+            
+            if node is None:
+                node = self.root
+                continue
+            
+            node = node.children[char]
+            
+            # Add all matches ending at current position
+            for keyword in node.output:
+                matches[keyword] += 1
+        
+        return matches
+
+def aho_corasick(text: str, keywords: list) -> list:
+    if not keywords or not text:
+        return []
+    
+    # Filter out empty keywords
+    keywords = [k for k in keywords if k.strip()]
+    if not keywords:
+        return []
+    
+    # Build Aho-Corasick automaton
+    ac = AhoCorasick()
+    ac.build_trie(keywords)
+    ac.build_failure_function()
+    
+    # Search for patterns
+    matches = ac.search(text)
+    
+    # Format output
+    keywords_data = []
+    for keyword in keywords:
+        occurrences = matches.get(keyword, 0)
+        if occurrences != 0:
+            keywords_data.append({
+                "keyword": keyword,
+                "occurrences": occurrences
+            })
+    
+    return keywords_data
+
+# Example usage  
+# text = "I love React and Express. HTML and CSS are great with React."
+# keywords = ["React", "Express", "HTML", "CSS", "JavaScript"]
+
+# result = aho_corasick(text, keywords)
+# print(result)
+# Output:
+# [
+#     {"keyword": "React", "occurrences": 2},
+#     {"keyword": "Express", "occurrences": 1}, 
+#     {"keyword": "HTML", "occurrences": 1},
+#     {"keyword": "CSS", "occurrences": 1},
+#     {"keyword": "JavaScript", "occurrences": 0}
+# ]
