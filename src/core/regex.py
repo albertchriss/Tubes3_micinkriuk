@@ -1,19 +1,6 @@
 import fitz  # PyMuPDF
 import re
 
-def extract_text_with_pymupdf(pdf_path):
-    """Mengekstrak seluruh teks dari file PDF menggunakan PyMuPDF (fitz)."""
-    text = ""
-    print(f"Mengekstrak teks dari {pdf_path} menggunakan PyMuPDF...")
-    try:
-        with fitz.open(pdf_path) as doc:
-            for page in doc:
-                text += page.get_text() + "\n" # type: ignore
-        return text
-    except Exception as e:
-        print(f"Error saat mengekstrak teks dari {pdf_path}: {e}")
-        return None
-
 def parse_skills(skills_block):
     """Mem-parsing blok teks skills menjadi sebuah list yang lebih bersih."""
     if not skills_block:

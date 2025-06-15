@@ -61,21 +61,13 @@
     mysql -u root -p ats_database < tubes3_seeding.sql
     ```
 
-#### Seed Database
-
-1. Buat file `.env` di root project
+6. Buat file `.env` di root project
 
     ```bash
     cp .env.example .env
     ```
 
-2. Edit `DATABASE_URL`
-
-3. Jalankan seeder
-
-    ```bash
-    python src/scripts/seeder.py
-    ```
+7. Edit `DATABASE_URL`
 
 ## Run Application
 
