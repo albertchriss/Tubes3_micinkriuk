@@ -3,7 +3,7 @@ import flet as ft
 class SearchConfiguration:
     def __init__(self, on_search_callback=None):
         self.on_search_callback = on_search_callback
-        
+        self.is_searching = False
         # Create components
         self.algorithms = ft.SegmentedButton(
             segments=[
@@ -44,16 +44,16 @@ class SearchConfiguration:
         )
 
         self.search_button = ft.ElevatedButton(
-            "Search", 
-            icon=ft.Icons.SEARCH,
+            content=self._create_search_button_content(),
+            # icon=ft.Icons.SEARCH,
             color="#FFFFFF",
             on_click=self._on_search_clicked,
             bgcolor="#4A90E2",   
             style=ft.ButtonStyle(
                 shape=ft.RoundedRectangleBorder(radius=10),
-                padding=ft.padding.symmetric(horizontal=50, vertical=15),
-                text_style=ft.TextStyle(size=20, weight=ft.FontWeight.BOLD),
-            ) 
+                padding=ft.padding.symmetric(horizontal=50, vertical=20),
+            ), 
+            width=200,
         )
 
         # Create the main container
@@ -105,8 +105,28 @@ class SearchConfiguration:
                 offset=ft.Offset(0, 4)
             ),
         )
-    
-    def _on_search_clicked(self, e):
+    def _create_search_button_content(self):
+        """Create search button content based on loading state"""
+        if self.is_searching:
+            return ft.Row([
+                ft.ProgressRing(
+                    width=16,
+                    height=16,
+                    stroke_width=2,
+                    color="#FFFFFF"
+                ),
+                ft.Text("Searching...", size=16, weight=ft.FontWeight.BOLD)
+            ], spacing=10, alignment=ft.MainAxisAlignment.CENTER)
+        else:
+            return ft.Row([
+                ft.Icon(ft.Icons.SEARCH),
+                ft.Text("Search", size=16, weight=ft.FontWeight.BOLD)
+            ], spacing=10, alignment=ft.MainAxisAlignment.CENTER)
+        
+    async def _on_search_clicked(self, e):
+        if self.is_searching:
+            return
+        
         if self.on_search_callback:
             if(self.keywords_field.value == "" or self.top_matches.value == ""):
                 return
@@ -120,8 +140,20 @@ class SearchConfiguration:
                 'algorithm': list(self.algorithms.selected)[0] if self.algorithms.selected else None,
                 'top_matches': self.top_matches.value
             }
+            # Start loading
+            self.is_searching = True
+            self.search_button.disabled = True
+            self.search_button.content = self._create_search_button_content()
+            e.page.update()
+             
             self.on_search_callback(search_data)
-    
+                    
+            # Stop loading
+            self.is_searching = False
+            self.search_button.disabled = False
+            self.search_button.content = self._create_search_button_content()
+            e.page.update()
+            
     # def get_values(self):
     #     """Get current form values"""
     #     return {
