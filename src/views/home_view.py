@@ -27,28 +27,36 @@ def home_view(page: ft.Page):
             algo=search_data["algorithm"],
             top_match=int(search_data["top_matches"])
         )
-        
-        # TODO: Add your search logic here
-        # Your search function should return data in this format:
-        # results_data = {
-        #     "exact_match_stats": {"count": 15, "time_ms": 45},
-        #     "fuzzy_match_stats": {"count": 8, "time_ms": 78},
-        #     "applicants": [
-        #         {
-        #             "applicant_id": 1,
-        #             "name": "John Doe",
-        #             "matched_keywords": 3,
-        #             "keywords_data": [{"keyword": "Python", "occurrences": 2}],
-        #             "bgcolor": "#E3F2FD"
-        #         }
-        #     ]
-        # }
+        try:
+            page.client_storage.set("cached_results_data", results_data)
+            print("Results cached successfully")
+        except Exception as e:
+            print(f"Error caching results: {e}")
         
         # Show results with sample data for now
         # results.show_results()
         results.show_results(results_data)  # Use this when you have real data
         page.update()
         
+    def restore_cached_results():
+        """Restore cached results if they exist"""
+        try:
+            cached_data = page.client_storage.get("cached_results_data")
+            if cached_data is not None:
+                print("Restoring cached results...")
+                results.show_results(cached_data)
+                page.update()
+                return True
+            else:
+                print("No cached results found")
+                return False
+        except Exception as e:
+            print(f"Error restoring cached results: {e}")
+            return False
+        
+    # Try to restore cached results when the view loads
+    restore_cached_results()
+    
     search_config = SearchConfiguration(on_search_callback=on_search_callback)
     
     return ft.Container(
