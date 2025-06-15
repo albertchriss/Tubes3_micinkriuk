@@ -21,7 +21,6 @@ def knuth_morris_pratt(text: str, keywords: list[str]) -> list[dict]:
     results = []
     for keyword in keywords:
         if not keyword:
-            results.append({"keyword": keyword, "occurrences": 0})
             continue
             
         border = border_function(keyword)
@@ -60,7 +59,6 @@ def boyer_moore(text: str, keywords: list[str]) -> list[dict]:
     
     for keyword in keywords:
         if not keyword:
-            results.append({"keyword": keyword, "occurrences": 0})
             continue
             
         last_occurence = get_last_occ(keyword)
@@ -90,13 +88,13 @@ def boyer_moore(text: str, keywords: list[str]) -> list[dict]:
 
 
 
-def levenshtein_distance(pattern: str, text: str) -> float:
+def levenshtein_distance(a: str, b: str) -> float:
     """
     Calculate the Levenshtein distance for fuzzy match between two strings. Returns
     the matching percentage as a float between 0 and 100 (%), where 100% means perfect match.
     """
 
-    m, n = len(pattern), len(text)
+    m, n = len(a), len(b)
     if m == 0:
         return 100.0 if n == 0 else 0.0
 
@@ -111,7 +109,7 @@ def levenshtein_distance(pattern: str, text: str) -> float:
     # DP computation
     for i in range(1, m + 1):
         for j in range(1, n + 1):
-            cost = 0 if pattern[i - 1] == text[j - 1] else 1
+            cost = 0 if a[i - 1] == b[j - 1] else 1
             dp[i][j] = min(
                 dp[i - 1][j] + 1,       # delete
                 dp[i][j - 1] + 1,       # insert
@@ -119,6 +117,34 @@ def levenshtein_distance(pattern: str, text: str) -> float:
             )
 
     return (1 - dp[m][n] / max(m, n)) * 100
+
+def fuzzy_match(text: str, keywords: list[str], threshold: float = 80.0) -> list[dict]:
+    """
+    Perform fuzzy matching of keywords in the text using Levenshtein distance.
+    Returns a list of dictionaries with keyword and its occurrences.
+    """
+    if not keywords:
+        return []
+    
+    results = []
+    
+    for keyword in keywords:
+        if not keyword:
+            continue
+            
+        occurrences = 0
+        words = text.split()
+        
+        for word in words:
+            match_percentage = levenshtein_distance(word.lower(), keyword.lower())
+            if match_percentage >= threshold:
+                occurrences += 1
+        
+        if occurrences > 0:
+            results.append({"keyword": keyword, "occurrences": occurrences})
+    
+    return results
+
 
 class AhoCorasickNode:
     def __init__(self):

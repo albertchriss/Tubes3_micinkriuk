@@ -1,7 +1,7 @@
 from core.database import get_db
 from core.repository import *
 from datetime import date
-from core.algorithm import knuth_morris_pratt, boyer_moore, aho_corasick
+from core.algorithm import knuth_morris_pratt, boyer_moore, aho_corasick, fuzzy_match
 from core.utils import extract_text_from_pdf
 import time
 import pickle
@@ -48,7 +48,7 @@ def extract_all_cv_data(force_refresh=False):
     applications = get_all_applications()
 
     for application in applications:
-        if application.cv_path and application.applicant_id:
+        if application.cv_path and application.applicant_id: # type: ignore
             cv_text = extract_text_from_pdf(application.cv_path)
             if cv_text:
                 cv_data_text[application.detail_id] = {
@@ -166,7 +166,7 @@ def get_cv_data_by_applicant_id(applicant_id: int):
         
         cv_data = {
             "name": f"{applicant.first_name} {applicant.last_name}",
-            "birthdate": applicant.date_of_birth.isoformat() if applicant.date_of_birth else None,
+            "birthdate": applicant.date_of_birth.isoformat() if applicant.date_of_birth else None, # type: ignore
             "address": applicant.address,
             "phone_number": applicant.phone_number,
             "skills": [],
@@ -185,13 +185,14 @@ def search_matching_data(keywords: list[str], algo: str, top_match: int) -> dict
 
     applicant_match_count = 0
     applicants_results = []
+    chosen_applications = set()
 
     curr_time = time.time()
 
     for applicant in applicants:
         if (applicant_match_count >= top_match) and (top_match > 0):
                 break
-        applications = get_applications_by_applicant_id(applicant.applicant_id)
+        applications = get_applications_by_applicant_id(applicant.applicant_id) # type: ignore
         for application in applications:
             results = []
             cv_text = cv_data_text.get(application.detail_id, {}).get("cleaned_text", "")
@@ -218,6 +219,7 @@ def search_matching_data(keywords: list[str], algo: str, top_match: int) -> dict
                 "cv_path": application.cv_path,
                 "bgcolor": "#E3F2FD"  # Example background color
             })
+            chosen_applications.add(application.detail_id)
 
             if (applicant_match_count >= top_match) and (top_match > 0):
                 break
@@ -227,10 +229,40 @@ def search_matching_data(keywords: list[str], algo: str, top_match: int) -> dict
         "time_ms": int((time.time() - curr_time) * 1000)  # Convert to milliseconds
     }
 
+    # Fuzzy matching
+    fuzzy_match_count = 0
     curr_time = time.time()
+    for applicant in applicants:
+        if (applicant_match_count >= top_match) and (top_match > 0):
+            break
+        applications = get_applications_by_applicant_id(applicant.applicant_id) # type: ignore
+        for application in applications:
+            cv_text = cv_data_text.get(application.detail_id, {}).get("cleaned_text", "")
+            if not cv_text:
+                continue
 
+            if not application.detail_id or application.detail_id in chosen_applications: # type: ignore
+                continue
+            
+            results = fuzzy_match(cv_text, keywords)
+
+            if not results:
+                continue
+            fuzzy_match_count += 1
+            applicants_results.append({
+                "applicant_id": applicant.applicant_id,
+                "name": f"{applicant.first_name} {applicant.last_name}",
+                "matched_keywords": len(results),
+                "keywords_data": results,
+                "cv_path": application.cv_path,
+                "bgcolor": "#E3F2FD"  # Example background color
+            })
+
+            if (applicant_match_count >= top_match) and (top_match > 0):
+                break
+    
     fuzzy_match_stats = {
-        "count": 0,  # Placeholder for fuzzy match count
+        "count": fuzzy_match_count,
         "time_ms": int((time.time() - curr_time) * 1000)  # Convert to milliseconds
     }
 
@@ -242,10 +274,6 @@ def search_matching_data(keywords: list[str], algo: str, top_match: int) -> dict
 
     return results_data
 
-    # for applicant in applicants_results:
-    #     applications = get_applications_by_applicant_id(applicant.applicant_id)
-    #     for application in applications:
-    #         cv_text = cv_data_text.get(application.detail_id, {}).get("cleaned_text", "")
             
     # results_data = {
     #     "exact_match_stats": {"count": 0, "time_ms": 0},
