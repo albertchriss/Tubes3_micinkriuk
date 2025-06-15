@@ -1,6 +1,8 @@
 import flet as ft
 from views.home_view import home_view
 from views.cv_summary_view import cv_summary_view
+import core.service as service
+
 
 def main(page: ft.Page):
     page.title = "CV Pattern Matching"
@@ -11,6 +13,8 @@ def main(page: ft.Page):
         # "PGO": "/fonts/Pathway_Gothic_One/PathwayGothicOne-Regular.ttf",
         # "Freeman": "/fonts/Freeman/Freeman-Regular.ttf",
     }
+
+    service.extract_all_cv_data() 
 
     def route_change(route):
         page.views.clear()

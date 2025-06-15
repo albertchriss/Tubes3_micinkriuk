@@ -238,6 +238,7 @@ class Results:
             for applicant in applicant_chunk:
                 card = ResultCard(
                     applicant_id=applicant["applicant_id"],
+                    detail_id=applicant["detail_id"],
                     name=applicant["name"],
                     matched_keywords=applicant["matched_keywords"],
                     keywords_data=applicant["keywords_data"],

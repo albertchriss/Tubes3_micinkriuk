@@ -140,6 +140,7 @@ class SearchConfiguration:
                 'algorithm': list(self.algorithms.selected)[0] if self.algorithms.selected else None,
                 'top_matches': self.top_matches.value
             }
+            print(f"Search data: {search_data}")
             # Start loading
             self.is_searching = True
             self.search_button.disabled = True

@@ -40,6 +40,12 @@ def repo_get_applications_by_applicant_id(db: Session, applicant_id: int):
     """
     return db.query(ApplicationDetail).filter(ApplicationDetail.applicant_id == applicant_id).all()
 
+def repo_get_application_by_id(db: Session, detail_id: int):
+    """
+    Retrieve an application by its ID.
+    """
+    return db.query(ApplicationDetail).filter(ApplicationDetail.detail_id == detail_id).first()
+
 def repo_insert_application(db: Session, application: ApplicationDetail):
     """
     Insert a new application into the database.

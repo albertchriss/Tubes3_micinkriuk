@@ -1,6 +1,7 @@
 import flet as ft
 from components.search_configuration import SearchConfiguration
 from components.results import Results
+from core.service import search_matching_data
 
 def home_view(page: ft.Page):
 
@@ -20,29 +21,18 @@ def home_view(page: ft.Page):
             algorithm ("Knuth-Morris-Pratt", "Boyer-Moore", or "Aho-Corasick"), 
             and top_matches (int)"""
 
-        print(f"Search data: {search_data}")
-        
-        # TODO: Add your search logic here
-        # Your search function should return data in this format:
-        # results_data = {
-        #     "exact_match_stats": {"count": 15, "time_ms": 45},
-        #     "fuzzy_match_stats": {"count": 8, "time_ms": 78},
-        #     "applicants": [
-        #         {
-        #             "applicant_id": 1,
-        #             "name": "John Doe",
-        #             "matched_keywords": 3,
-        #             "keywords_data": [{"keyword": "Python", "occurrences": 2}],
-        #             "bgcolor": "#E3F2FD"
-        #         }
-        #     ]
-        # }
+        # print(f"Search data: {search_data}")
+        results_data = search_matching_data(
+            keywords=search_data["keywords"],
+            algo=search_data["algorithm"],
+            top_match=int(search_data["top_matches"])
+        )
         
         # Show results with sample data for now
-        results.show_results()
-        # results.show_results(results_data)  # Use this when you have real data
+        # results.show_results()
+        results.show_results(results_data)  # Use this when you have real data
         page.update()
-        
+    
     search_config = SearchConfiguration(on_search_callback=on_search_callback)
     
     return ft.Container(
