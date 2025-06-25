@@ -218,3 +218,4 @@ def process_cv(full_text: str) -> dict:
     parser = ResumeParser(full_text)
     return parser.parse()
 
+
