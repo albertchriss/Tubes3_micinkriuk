@@ -8,8 +8,9 @@ EXPERIENCE_DATE_PATTERN = re.compile(
     re.IGNORECASE
 )
 YEAR_PATTERN = re.compile(r'\b(19[89]\d|20\d{2})\b')
-EDUCATION_KEYWORDS = r'(?i)(B\.S|B\.A|M\.S|M\.A|Ph\.D|Bachelor|Master|Associate|Diploma|Certificate|High School Diploma)'
-INSTITUTION_KEYWORDS = r'(?i)(University|College|Institute|School)'
+# Removed inline (?i) flags and added more keywords like BBA
+EDUCATION_KEYWORDS = r'(B\.S|B\.A|BBA|M\.S|M\.A|Ph\.D|Bachelor|Master|Associate|Diploma|Certificate|High School Diploma)'
+INSTITUTION_KEYWORDS = r'(University|College|Institute|School)'
 SECTION_HEADERS = r'Experience|Professional Experience|Work Experience|Education|Education and Training|Skills|Highlights|Projects|Qualifications|Accomplishments|Awards|Certifications'
 
 
@@ -31,38 +32,39 @@ class ResumeParser:
         self.sections = self._get_sections()
 
     def _clean_text(self, text: str) -> str:
-        """Removes common PDF artifacts and normalizes whitespace."""
+        """Removes common PDF artifacts and normalizes whitespace while preserving newlines."""
         if not text:
             return ""
-        text = re.sub(r'[\s\xa0]+', ' ', text)  # Normalize whitespace and remove non-breaking spaces
-        text = re.sub(r'Â|â€', '', text)  # Remove common decoding artifacts
-        text = re.sub(r'1/4|i¼', '', text) # Remove other artifacts
+        # Remove common decoding artifacts. Added ï¼ from user example.
+        text = re.sub(r'Â|â€|ï¼', '', text)
+        # Normalize HORIZONTAL whitespace (spaces, tabs) to a single space, but leave newlines alone.
+        text = re.sub(r'[ \t\xa0]+', ' ', text)
+        # Standardize newlines and remove excessive blank lines, preserving paragraph breaks.
+        text = re.sub(r'\n\s*\n', '\n\n', text) 
         return text.strip()
 
     def _get_sections(self) -> dict:
         """Splits the cleaned text into a dictionary of sections by finding headers."""
-        # This new method finds headers without relying on specific newline patterns, making it more robust.
         sections = {}
-        # Find the start index of all headers using word boundaries (\b)
-        header_matches = list(re.finditer(fr'\b({SECTION_HEADERS})\b', self.cleaned_text, re.IGNORECASE))
+        header_pattern = fr'\b({SECTION_HEADERS})\b'
+        header_matches = list(re.finditer(header_pattern, self.cleaned_text, re.IGNORECASE))
 
         if not header_matches:
             sections['Uncategorized'] = self.cleaned_text
             return sections
 
-        # Capture the text before the very first header
+        # Capture text before the first header
         first_header_start = header_matches[0].start()
         if first_header_start > 0:
             sections['Header'] = self.cleaned_text[:first_header_start].strip()
 
-        # Slice the text between each header to get the content for that section
+        # Slice the text between each header
         for i, match in enumerate(header_matches):
             header_text = match.group(1).strip().title()
             content_start = match.end()
             content_end = header_matches[i+1].start() if i + 1 < len(header_matches) else len(self.cleaned_text)
             
-            # Clean up content, removing leading colons or whitespace
-            content = re.sub(r'^[:\s]*', '', self.cleaned_text[content_start:content_end]).strip()
+            content = self.cleaned_text[content_start:content_end].strip(' :\n')
             sections[header_text] = content
             
         return sections
@@ -81,39 +83,87 @@ class ResumeParser:
         return list(dict.fromkeys(skills_list))
 
     def _parse_education(self) -> list[dict]:
-        """Parses the Education section into a list of educational experiences."""
+        """
+        Parses the Education section more robustly to handle multiple entries.
+        It identifies each entry by looking for patterns that signify a new degree.
+        """
         education_block = self.sections.get('Education') or self.sections.get('Education And Training')
         if not education_block:
             return []
 
-        # Split the block into entries based on blank lines, a common separator.
-        entries = re.split(r'\n\s*\n', education_block)
         education_list = []
-        for entry in entries:
-            if len(entry.strip()) < 5:
+        # Split the block into lines to process them one by one
+        lines = education_block.strip().split('\n')
+        
+        current_entry_lines = []
+        # A regex to detect the start of a new educational entry. This can be a year or a degree keyword.
+        entry_start_pattern = re.compile(f'({YEAR_PATTERN.pattern}|{EDUCATION_KEYWORDS})', re.IGNORECASE)
+
+        for line in lines:
+            line = line.strip()
+            if not line:
                 continue
             
-            edu_dict = {}
-            # Extract year, degree, and institution from each entry
-            year_match = YEAR_PATTERN.search(entry)
-            if year_match:
-                edu_dict['year'] = year_match.group(0)
-
-            # Find the line containing a degree keyword
-            for line in entry.split('\n'):
-                if re.search(EDUCATION_KEYWORDS, line, re.IGNORECASE):
-                    edu_dict['degree'] = line.strip()
-                    break
-
-            # Find the line containing an institution keyword
-            for line in entry.split('\n'):
-                if re.search(INSTITUTION_KEYWORDS, line, re.IGNORECASE):
-                    edu_dict['institution'] = line.strip()
-                    break
-            
+            # If a line looks like the start of a new entry AND there's a current entry being built,
+            # process the completed entry first.
+            if entry_start_pattern.search(line) and current_entry_lines:
+                entry_text = ' '.join(current_entry_lines)
+                edu_dict = self._extract_education_details(entry_text)
+                if edu_dict:
+                    education_list.append(edu_dict)
+                # Start a new entry
+                current_entry_lines = [line]
+            else:
+                # Continue building the current entry
+                current_entry_lines.append(line)
+        
+        # Process the last entry in the buffer
+        if current_entry_lines:
+            entry_text = ' '.join(current_entry_lines)
+            edu_dict = self._extract_education_details(entry_text)
             if edu_dict:
                 education_list.append(edu_dict)
+
         return education_list
+
+    def _extract_education_details(self, entry_text: str) -> dict:
+        """Helper function to extract details from a single education entry string."""
+        edu_dict = {}
+        
+        # Extract year first, as it's a clear marker
+        year_match = YEAR_PATTERN.search(entry_text)
+        if year_match:
+            edu_dict['year'] = year_match.group(0)
+            entry_text = entry_text.replace(year_match.group(0), '').strip()
+
+        # The remaining text likely contains the degree and institution
+        parts = [p.strip() for p in re.split(r',|:', entry_text) if p.strip()]
+
+        degree_str = ""
+        institution_str = ""
+        
+        # Find the parts that contain our keywords
+        for part in parts:
+            if re.search(EDUCATION_KEYWORDS, part, re.IGNORECASE):
+                degree_str = part
+            elif re.search(INSTITUTION_KEYWORDS, part, re.IGNORECASE):
+                institution_str = part
+        
+        # Assign the found parts
+        if degree_str:
+            edu_dict['degree'] = degree_str
+        if institution_str:
+            edu_dict['institution'] = institution_str
+
+        # If we are missing information, try to infer it from the remaining text
+        if not edu_dict.get('institution') and edu_dict.get('degree'):
+            remaining_text = entry_text.replace(edu_dict['degree'], '').strip(' ,:')
+            edu_dict['institution'] = remaining_text
+        elif not edu_dict.get('degree') and edu_dict.get('institution'):
+            remaining_text = entry_text.replace(edu_dict['institution'], '').strip(' ,:')
+            edu_dict['degree'] = remaining_text
+
+        return edu_dict if edu_dict else {}
 
     def _parse_experience(self) -> list[dict]:
         """Parses the Experience section into a list of jobs."""
@@ -121,23 +171,11 @@ class ResumeParser:
         if not experience_block:
             return []
 
-        job_entries = []
-        # Find all date ranges, which act as reliable anchors for job entries.
-        date_matches = list(EXPERIENCE_DATE_PATTERN.finditer(experience_block))
-        if not date_matches:
-            # Fallback for when dates are not found: split by blank lines
-            return [{'description': entry} for entry in re.split(r'\n\s*\n', experience_block) if entry.strip()]
-
-        # Assume the text between two dates belongs to the first one.
-        start_pos = 0
-        for i, match in enumerate(date_matches):
-            # This logic is complex. A simpler split by blank lines is often more reliable.
-            # We will use that as the primary strategy.
-            pass # Keep date_matches for internal parsing but don't use for splitting the block.
-            
-        entries = re.split(r'\n\s*\n', experience_block)
+        # Splitting by two or more newlines is a good way to separate job entries.
+        entries = re.split(r'\n\n', experience_block)
         job_list = []
         for entry in entries:
+            entry = entry.strip()
             if not entry or len(entry) < 20:
                 continue
 
@@ -146,7 +184,7 @@ class ResumeParser:
             date_match = EXPERIENCE_DATE_PATTERN.search(entry)
             if date_match:
                 job_dict['dates'] = date_match.group(0)
-                entry = entry.replace(date_match.group(0), '')
+                entry = entry.replace(date_match.group(0), '').strip()
             else:
                 job_dict['dates'] = ''
 
@@ -154,12 +192,12 @@ class ResumeParser:
             if not lines:
                 continue
 
-            # Heuristic: First line is position, second is company.
             job_dict['position'] = lines[0]
             job_dict['company'] = lines[1] if len(lines) > 1 and not EXPERIENCE_DATE_PATTERN.search(lines[1]) else ''
-            # The rest is the description.
+            
             desc_start_index = 2 if job_dict['company'] else 1
             job_dict['description'] = ' '.join(lines[desc_start_index:]).strip()
+            
             job_list.append(job_dict)
 
         return job_list
@@ -187,7 +225,6 @@ def process_cv(full_text: str) -> dict:
     Returns:
         A dictionary with the parsed data structured into 'skills', 'education', and 'job_history'.
     """
-    # Handle empty or invalid input gracefully.
     if not isinstance(full_text, str) or not full_text:
         return {"skills": [], "education": [], "job_history": []}
         
@@ -200,7 +237,7 @@ def process_cv(full_text: str) -> dict:
 #     """Extracts all text from a given PDF file."""
 #     try:
 #         doc = fitz.open(pdf_path)
-#         text = "".join(page.get_text() for page in doc)
+#         text = "".join(page.get_text("text") for page in doc)
 #         doc.close()
 #         return text
 #     except Exception as e:
@@ -208,7 +245,8 @@ def process_cv(full_text: str) -> dict:
 #         return ""
 #
 # if __name__ == '__main__':
-#     resume_files = ['16849128.pdf'] # Add your PDF file paths here
+#     # Make sure to place the PDF files in the same directory or provide full paths
+#     resume_files = ['15603319.pdf', '12341902.pdf', '16661264.pdf']
 #
 #     for resume_file in resume_files:
 #         print(f"\n--- Processing Resume: {resume_file} ---")
