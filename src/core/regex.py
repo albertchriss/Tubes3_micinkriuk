@@ -11,7 +11,8 @@ YEAR_PATTERN = re.compile(r'\b(19[89]\d|20\d{2})\b')
 # Removed inline (?i) flags and added more keywords like BBA
 EDUCATION_KEYWORDS = r'(B\.S|B\.A|BBA|M\.S|M\.A|Ph\.D|Bachelor|Master|Associate|Diploma|Certificate|High School Diploma)'
 INSTITUTION_KEYWORDS = r'(University|College|Institute|School)'
-SECTION_HEADERS = r'Experience|Professional Experience|Work Experience|Education|Education and Training|Skills|Highlights|Projects|Qualifications|Accomplishments|Awards|Certifications'
+# Expanded the list of section headers based on user feedback to be more comprehensive.
+SECTION_HEADERS = r'Work Experience|Employment History|Professional Experience|Relevant Experience|Work History|Internship Experience|Research Experience|Academic Projects|Extracurricular Involvement|Additional Experience|Leadership Experience|Volunteer Experience|Experience|Education|Education and Training|Skills|Technical Skills|Professional Skills|Abilities|Expertise|Competencies|Highlights|Projects|Qualifications|Accomplishments|Awards|Certifications'
 
 
 class ResumeParser:
@@ -35,8 +36,8 @@ class ResumeParser:
         """Removes common PDF artifacts and normalizes whitespace while preserving newlines."""
         if not text:
             return ""
-        # Remove common decoding artifacts. Added ï¼ from user example.
-        text = re.sub(r'Â|â€|ï¼', '', text)
+        # Remove common decoding artifacts. Added ï¼ and â€“ from user examples.
+        text = re.sub(r'Â|â€|ï¼|â€“', '', text)
         # Normalize HORIZONTAL whitespace (spaces, tabs) to a single space, but leave newlines alone.
         text = re.sub(r'[ \t\xa0]+', ' ', text)
         # Standardize newlines and remove excessive blank lines, preserving paragraph breaks.
@@ -46,6 +47,7 @@ class ResumeParser:
     def _get_sections(self) -> dict:
         """Splits the cleaned text into a dictionary of sections by finding headers."""
         sections = {}
+        # The title pattern is now much more comprehensive.
         header_pattern = fr'\b({SECTION_HEADERS})\b'
         header_matches = list(re.finditer(header_pattern, self.cleaned_text, re.IGNORECASE))
 
@@ -70,17 +72,30 @@ class ResumeParser:
         return sections
 
     def _parse_skills(self) -> list[str]:
-        """Parses the Skills or Highlights section into a list of skills."""
-        skills_block = self.sections.get('Skills') or self.sections.get('Highlights')
+        """
+        Parses the Skills section into a list of skills, ensuring skills are not long sentences.
+        """
+        # Added new skill-related headers based on user feedback.
+        skills_headers = ['Skills', 'Highlights', 'Technical Skills', 'Professional Skills', 'Abilities', 'Expertise', 'Competencies']
+        skills_block = None
+        for header in skills_headers:
+            skills_block = self.sections.get(header.title())
+            if skills_block:
+                break
+
         if not skills_block:
             return []
 
         # Replace common delimiters with a comma
         cleaned_text = re.sub(r'[\n•*▪|]', ',', skills_block)
         # Split, clean, and filter out empty items
-        skills_list = [skill.strip() for skill in cleaned_text.split(',') if len(skill.strip()) > 2]
+        skills_list = [skill.strip() for skill in cleaned_text.split(',') if skill.strip()]
+        
+        # Filter out skills that are too long (more than 3 words).
+        short_skills = [skill for skill in skills_list if len(skill.split()) <= 3]
+        
         # Return a list with duplicates removed while preserving order
-        return list(dict.fromkeys(skills_list))
+        return list(dict.fromkeys(short_skills))
 
     def _parse_education(self) -> list[dict]:
         """
@@ -166,41 +181,85 @@ class ResumeParser:
         return edu_dict if edu_dict else {}
 
     def _parse_experience(self) -> list[dict]:
-        """Parses the Experience section into a list of jobs."""
-        experience_block = self.sections.get('Experience') or self.sections.get('Professional Experience') or self.sections.get('Work Experience')
+        """
+        Parses the Experience section into a list of jobs, matching the requested
+        output format: {'position': str, 'description': str, 'year': str}.
+        This version iterates through lines to robustly group job entries.
+        """
+        experience_headers = [
+            'Experience', 'Professional Experience', 'Work Experience', 'Work History', 
+            'Employment History', 'Relevant Experience', 'Internship Experience', 'Research Experience', 
+            'Academic Projects', 'Extracurricular Involvement', 'Additional Experience', 
+            'Leadership Experience', 'Volunteer Experience'
+        ]
+        
+        experience_block = None
+        for header in experience_headers:
+            experience_block = self.sections.get(header.title())
+            if experience_block:
+                break
+        
         if not experience_block:
             return []
 
-        # Splitting by two or more newlines is a good way to separate job entries.
-        entries = re.split(r'\n\n', experience_block)
-        job_list = []
-        for entry in entries:
-            entry = entry.strip()
-            if not entry or len(entry) < 20:
-                continue
+        job_entries = []
+        current_job_lines = []
+        lines = experience_block.strip().split('\n')
 
-            job_dict = {}
-            # Extract the date from the entry
-            date_match = EXPERIENCE_DATE_PATTERN.search(entry)
-            if date_match:
-                job_dict['dates'] = date_match.group(0)
-                entry = entry.replace(date_match.group(0), '').strip()
+        for line in lines:
+            # A new job entry is identified by a line containing a date pattern.
+            is_new_job_header = EXPERIENCE_DATE_PATTERN.search(line) and not line.strip().startswith(('•', '*', '-'))
+            
+            if is_new_job_header and current_job_lines:
+                # If we find a new job header and we have lines for a previous job,
+                # process the previous job entry.
+                job_entries.append("\n".join(current_job_lines))
+                current_job_lines = [line]  # Start the new job entry
             else:
-                job_dict['dates'] = ''
+                # Otherwise, keep adding lines to the current job entry.
+                current_job_lines.append(line)
+        
+        # Add the last job entry from the buffer
+        if current_job_lines:
+            job_entries.append("\n".join(current_job_lines))
 
-            lines = [line.strip() for line in entry.split('\n') if line.strip()]
-            if not lines:
+        job_list = []
+        for entry_text in job_entries:
+            if not entry_text:
                 continue
 
-            job_dict['position'] = lines[0]
-            job_dict['company'] = lines[1] if len(lines) > 1 and not EXPERIENCE_DATE_PATTERN.search(lines[1]) else ''
+            entry_lines = [ln.strip() for ln in entry_text.split('\n') if ln.strip()]
+            if not entry_lines:
+                continue
+
+            # First line has the position and year
+            first_line = entry_lines[0]
+            date_match = EXPERIENCE_DATE_PATTERN.search(first_line)
             
-            desc_start_index = 2 if job_dict['company'] else 1
-            job_dict['description'] = ' '.join(lines[desc_start_index:]).strip()
-            
-            job_list.append(job_dict)
+            position = first_line
+            year = ""
+            if date_match:
+                position = first_line[:date_match.start()].strip(' ,')
+                year = date_match.group(0)
+
+            # Second line is likely the company, which will be the description
+            company = ''
+            if len(entry_lines) > 1 and not entry_lines[1].startswith(('•', '*', '-')):
+                company = entry_lines[1]
+
+            # Clean up placeholders
+            position = re.sub(r',?\s*Company Name', '', position, flags=re.IGNORECASE).strip(' ,')
+            company = re.sub(r'Company Name', '', company, flags=re.IGNORECASE).strip(' ,')
+
+            if position:
+                job_list.append({
+                    'position': position,
+                    'description': company, # Company name goes into the description field
+                    'year': year
+                })
 
         return job_list
+
 
     def parse(self) -> dict:
         """
